@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+static int equalPositions(const struct position pos1, const struct position pos2);
 
 struct snake *snake_create(unsigned int rows, unsigned int cols) {
 	struct snake* snake = malloc(sizeof(struct snake));
@@ -51,6 +52,13 @@ struct position snake_body(struct snake *s, unsigned int i) {
 }
 
 int snake_knotted(struct snake *s) {
+	struct position headPos = s->body->pos;
+	struct body* node = s->body->next; /* Iniziamo a controllare da il nodo successivo alla testa */
+	while (node != NULL) {
+		if(equalPositions(node->pos, headPos))
+			return 1;
+		node = node->next; 
+	}
 	return 0;
 }
 
@@ -77,3 +85,6 @@ struct snake *snake_read(char *filename) {
     return NULL;    
 }
 
+static int equalPositions(const struct position pos1, const struct position pos2) {
+	return (pos1.i == pos2.i && pos1.j == pos2.j);
+}
