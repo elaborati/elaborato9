@@ -111,7 +111,7 @@ static int equalPositions(const struct position pos1, const struct position pos2
 	return (pos1.i == pos2.i && pos1.j == pos2.j);
 }
 
-static struct position NewPosition(struct position pos, enum direction dir, unsigned rows, unsigned cols) {
+static struct position newPosition(struct position pos, enum direction dir, unsigned rows, unsigned cols) {
     switch (dir) {
         case UP: pos.i = (pos.i+(rows-1)) % rows; break;
         case DOWN: pos.i = (pos.i+1) % rows; break;
