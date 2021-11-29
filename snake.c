@@ -17,8 +17,7 @@ struct snake *snake_create(unsigned int rows, unsigned int cols) {
 	snake->body = malloc(sizeof(struct body));
 	snake->body->next = NULL;
 	snake->body->prev = NULL;
-	struct position randPos;
-	randPos.i = rand() % rows; randPos.j =  rand() % cols;
+	struct position randPos; randPos.i = rand() % rows; randPos.j =  rand() % cols;
 	snake->body->pos = randPos;
 	return snake;
 } 
@@ -29,7 +28,7 @@ void snake_kill(struct snake *s) {
 	while (prev != NULL) {
 		next = prev->next;
 	 	free(prev);
-		prev = next; 
+		prev = next;
 	}
 	free(s);
 	s = NULL;
@@ -88,9 +87,18 @@ void snake_move(struct snake *s, enum direction dir) {
 }
 
 void snake_reverse(struct snake *s) {
+	struct body* node = s->body;
+	while (node != NULL)  {
+		struct body* tmp = node->prev;
+		node->prev = node->next;
+		node->next = tmp;
+		node = node->prev;
+	}
 }
 
 void snake_increase(struct snake *s, enum direction dir) {
+	struct body* node = s->body;
+	
 }
 
 void snake_decrease(struct snake *s, unsigned int decrease_len) {
