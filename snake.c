@@ -7,7 +7,7 @@
 static int equalPositions(const struct position pos1, const struct position pos2);
 static struct position newPosition(struct position pos, enum direction dir, unsigned rows, unsigned cols);
 static struct body newBody(struct position pos, struct body* prev, struct body* next);
-static struct body* tail(struct snake* s) {return s->body->prev;}
+static struct body* getTail(struct snake* s) {return s->body->prev;}
 
 struct snake *snake_create(unsigned int rows, unsigned int cols) {
 	struct snake* snake = malloc(sizeof(struct snake));
@@ -79,7 +79,7 @@ void snake_move(struct snake *s, enum direction dir) {
 
 void snake_reverse(struct snake *s) { 
 	struct body* newTail = s->body;
-	struct body* newHead = tail(s);
+	struct body* newHead = getTail(s);
 	s->body->prev = NULL;
 	
 	struct body* node = s->body;
@@ -96,7 +96,7 @@ void snake_reverse(struct snake *s) {
 void snake_increase(struct snake *s, enum direction dir) {
 	struct body* newHead = malloc(sizeof(struct body));
 	struct position newPos = newPosition(s->body->pos, dir, s->rows, s->cols);
-	*newHead = newBody(newPos, tail(s), s->body);
+	*newHead = newBody(newPos, getTail(s), s->body);
     s->body->prev = newHead;
     s->body = newHead;
 	++(s->length);
@@ -106,7 +106,7 @@ void snake_decrease(struct snake *s, unsigned int decrease_len) {
 	unsigned i = 0;
 	if(s != NULL && s->length >= decrease_len)
 		for(; i < decrease_len; ++i) {
-			struct body* oldTail = s->body->prev;
+			struct body* oldTail = getTail(s);
 			struct body* newTail = oldTail->prev;
 			newTail->next = NULL;
 			s->body->prev = newTail;
@@ -118,7 +118,10 @@ void snake_decrease(struct snake *s, unsigned int decrease_len) {
 
 /* Saves the snake into the filename. */
 void snake_save(struct snake *s, char *filename) {
-    
+    FILE* file = fopen("file.txt", "w");
+	if (file != NULL) {
+		
+	}
 }
 
 /* Loads the snake from filename */
