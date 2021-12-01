@@ -6,7 +6,8 @@
 
 static int equalPositions(const struct position pos1, const struct position pos2);
 static struct position newPosition(struct position pos, enum direction dir, unsigned rows, unsigned cols);
-
+static struct body newBody(struct position pos, struct body* prev, struct body* next);
+static struct body* tail(struct snake* s) {return s->body->prev;}
 
 struct snake *snake_create(unsigned int rows, unsigned int cols) {
 	struct snake* snake = malloc(sizeof(struct snake));
@@ -14,11 +15,9 @@ struct snake *snake_create(unsigned int rows, unsigned int cols) {
 	snake->cols = cols;
 	snake->length = 1;
 
-	snake->body = malloc(sizeof(struct body));
-	snake->body->next = NULL;
-	snake->body->prev = NULL;
+	snake->body = malloc(sizeof(struct body)); /*  */
 	struct position randPos; randPos.i = rand() % rows; randPos.j =  rand() % cols;
-	snake->body->pos = randPos;
+	*(snake->body) = newBody(randPos, snake->body, NULL);
 	return snake;
 } 
 
@@ -72,21 +71,17 @@ int snake_knotted(struct snake *s) {
 void snake_move(struct snake *s, enum direction dir) {
 	/*TODO #1 servirebbe avere un puntatore che punta alla coda del snake*/
 	/* Allunghiamo il serpente */
-	struct body* tmp = malloc(sizeof(struct body));
-	tmp->pos = newPosition(s->body->pos, dir, s->rows, s->cols);
-	tmp->next = s->body;
-	s->body->prev = tmp;
-	s->body = tmp;
+	snake_increase(s, dir);
 
 	/* Tagliamo la coda */ 
-	while (tmp->next->next != NULL) {
-		tmp = tmp->next;
-	}
-	free(tmp->next);
-	tmp->next = NULL;
+	snake_decrease(s, 1);
 }
 
-void snake_reverse(struct snake *s) {
+void snake_reverse(struct snake *s) { 
+	struct body* newTail = s->body;
+	struct body* newHead = tail(s);
+	s->body->prev = NULL;
+	
 	struct body* node = s->body;
 	while (node != NULL)  {
 		struct body* tmp = node->prev;
@@ -94,14 +89,29 @@ void snake_reverse(struct snake *s) {
 		node->next = tmp;
 		node = node->prev;
 	}
+	newHead->prev = newTail;
 }
 
 void snake_increase(struct snake *s, enum direction dir) {
-	struct body* node = s->body;
-	
+	struct body* newHead = malloc(sizeof(struct body));
+	struct position newPos = newPosition(s->body->pos, dir, s->rows, s->cols);
+	*newHead = newBody(newPos, tail(s), s->body);
+    s->body->prev = newHead;
+    s->body = newHead;
+	++(s->length);
 }
 
 void snake_decrease(struct snake *s, unsigned int decrease_len) {
+	unsigned i = 0;
+	if(s != NULL && s->length >= decrease_len)
+		for(; i < decrease_len; ++i) {
+			struct body* oldTail = s->body->prev;
+			struct body* newTail = oldTail->prev;
+			newTail->next = NULL;
+			s->body->prev = newTail;
+			free(oldTail);
+			--(s->length);
+		}
 }
 
 
@@ -129,3 +139,12 @@ static struct position newPosition(struct position pos, enum direction dir, unsi
     }
     return pos;
 }
+
+static struct body newBody(struct position pos, struct body* prev, struct body* next) {
+	struct body b;
+	b.pos = pos;
+	b.next = next;
+	b.prev = prev;
+	return b;
+}	
+
