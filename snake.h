@@ -47,6 +47,7 @@ void snake_move(struct snake *s, enum direction dir);
  * Reverses the snake.
  * The tail of the snake is now the new head.
  */
+
 void snake_reverse(struct snake *s);
 /*
  * Increases the snake length.

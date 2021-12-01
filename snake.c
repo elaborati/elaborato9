@@ -89,6 +89,7 @@ void snake_reverse(struct snake *s) {
 		node->next = tmp;
 		node = node->prev;
 	}
+	s->body = newHead;
 	newHead->prev = newTail;
 }
 
