@@ -19,7 +19,7 @@ struct snake *snake_create(unsigned int rows, unsigned int cols) {
 
 	snake->body = malloc(sizeof(struct body));
 	struct position randPos; randPos.i = rand() % rows; randPos.j =  rand() % cols;
-	*(snake->body) = newBody(randPos, snake->body, NULL);
+	*(snake->body) = newBody(randPos, NULL, NULL);
 	return snake;
 } 
 
@@ -91,7 +91,7 @@ void snake_reverse(struct snake *s) {
 		node = node->prev;
 	}
 	s->body = newHead;
-	newHead->prev = newTail;
+	newHead->prev = NULL;
 }
 
 void snake_increase(struct snake *s, enum direction dir) {
@@ -105,7 +105,7 @@ void snake_decrease(struct snake *s, unsigned int decrease_len) {
 			struct body* oldTail = getTail(s);
 			struct body* newTail = oldTail->prev;
 			newTail->next = NULL;
-			s->body->prev = newTail;
+			s->body->prev = NULL;
 			free(oldTail);
 			--(s->length);
 		}
