@@ -7,7 +7,7 @@
 static int equalPositions(struct position pos1, struct position pos2);
 static struct position newPosition(struct position pos, enum direction dir, unsigned rows, unsigned cols);
 static struct body newBody(struct position pos, struct body* prev, struct body* next);
-static struct body* getTail(struct snake* s) {return s->body->prev;}
+static struct body* getTail(struct snake* s);
 static void snakeIncreaseByPosition(struct snake* s, struct position pos);
 
 
@@ -176,4 +176,11 @@ static void snakeIncreaseByPosition(struct snake* s, struct position pos) {
     s->body->prev = newHead;
     s->body = newHead;
 	++(s->length);
+}
+
+static struct body* getTail(struct snake* s) {
+	struct body* node = s->body;
+	while (node->next != NULL)
+		node = node->next;
+	return node;
 }
