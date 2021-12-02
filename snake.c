@@ -4,10 +4,12 @@
 
 
 
-static int equalPositions(const struct position pos1, const struct position pos2);
+static int equalPositions(struct position pos1, struct position pos2);
 static struct position newPosition(struct position pos, enum direction dir, unsigned rows, unsigned cols);
 static struct body newBody(struct position pos, struct body* prev, struct body* next);
 static struct body* getTail(struct snake* s) {return s->body->prev;}
+static void snakeIncreaseByPosition(struct snake* s, struct position pos);
+
 
 struct snake *snake_create(unsigned int rows, unsigned int cols) {
 	struct snake* snake = malloc(sizeof(struct snake));
@@ -15,7 +17,7 @@ struct snake *snake_create(unsigned int rows, unsigned int cols) {
 	snake->cols = cols;
 	snake->length = 1;
 
-	snake->body = malloc(sizeof(struct body)); /*  */
+	snake->body = malloc(sizeof(struct body));
 	struct position randPos; randPos.i = rand() % rows; randPos.j =  rand() % cols;
 	*(snake->body) = newBody(randPos, snake->body, NULL);
 	return snake;
@@ -69,7 +71,6 @@ int snake_knotted(struct snake *s) {
 }
 
 void snake_move(struct snake *s, enum direction dir) {
-	/*TODO #1 servirebbe avere un puntatore che punta alla coda del snake*/
 	/* Allunghiamo il serpente */
 	snake_increase(s, dir);
 
@@ -94,12 +95,7 @@ void snake_reverse(struct snake *s) {
 }
 
 void snake_increase(struct snake *s, enum direction dir) {
-	struct body* newHead = malloc(sizeof(struct body));
-	struct position newPos = newPosition(s->body->pos, dir, s->rows, s->cols);
-	*newHead = newBody(newPos, getTail(s), s->body);
-    s->body->prev = newHead;
-    s->body = newHead;
-	++(s->length);
+	snakeIncreaseByPosition(s, newPosition(s->body->pos, dir, s->rows, s->cols));
 }
 
 void snake_decrease(struct snake *s, unsigned int decrease_len) {
@@ -118,14 +114,36 @@ void snake_decrease(struct snake *s, unsigned int decrease_len) {
 
 /* Saves the snake into the filename. */
 void snake_save(struct snake *s, char *filename) {
-    FILE* file = fopen("file.txt", "w");
+    FILE* file = fopen(filename, "w");
 	if (file != NULL) {
-		
+		fprintf("%u ", s->length);
+
+		struct body* node = s->body;
+		unsigned i = 0;
+		for(; i < s->length && node != NULL; ++i) {
+			fprintf("%u %u ", node->pos.i, node->pos.j);
+			node = node->next;
+		}
 	}
+	fclose(file);
 }
 
 /* Loads the snake from filename */
 struct snake *snake_read(char *filename) {
+	struct snake* s = malloc(sizeof(*s));
+	FILE* file = fopen(filename, "r");
+	if (file != NULL) {
+		fscanf("%u ", s->length);
+
+		struct body* prev = NULL;
+		unsigned i = 0;
+		for(; i < s->length; ++i) {
+			struct position pos;
+			fscanf("%u %u ", &(pos.i), &(pos.j));
+			snakeIncreaseByPosition(s, pos);
+		}
+	}
+	fclose(file);
     return NULL;    
 }
 
@@ -152,3 +170,10 @@ static struct body newBody(struct position pos, struct body* prev, struct body* 
 	return b;
 }	
 
+static void snakeIncreaseByPosition(struct snake* s, struct position pos) {
+	struct body* newHead = malloc(sizeof(struct body));	
+	*newHead = newBody(pos, getTail(s), s->body);
+    s->body->prev = newHead;
+    s->body = newHead;
+	++(s->length);
+}
