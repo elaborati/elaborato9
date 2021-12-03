@@ -1,15 +1,17 @@
 #include "snake.h" 
 #include <stdio.h>
 #include <stdlib.h>
-
-
+/*#include <errno.h>*/
+#include <string.h>
+#include <time.h>
 
 static int equalPositions(struct position pos1, struct position pos2);
 static struct position newPosition(struct position pos, enum direction dir, unsigned rows, unsigned cols);
 static struct body newBody(struct position pos, struct body* prev, struct body* next);
 static struct body* getTail(struct snake* s);
 static void snakeIncreaseByPosition(struct snake* s, struct position pos);
-
+static void firstPositionForSnake(struct snake* s, struct position firstPos);
+static void snakeAppend(struct snake* s, struct position pos);
 
 struct snake *snake_create(unsigned int rows, unsigned int cols) {
 	struct snake* snake = malloc(sizeof(struct snake));
@@ -18,6 +20,7 @@ struct snake *snake_create(unsigned int rows, unsigned int cols) {
 	snake->length = 1;
 
 	snake->body = malloc(sizeof(struct body));
+    srand(time(NULL));
 	struct position randPos; randPos.i = rand() % rows; randPos.j =  rand() % cols;
 	*(snake->body) = newBody(randPos, NULL, NULL);
 	return snake;
@@ -67,6 +70,7 @@ int snake_knotted(struct snake *s) {
 			node = node->next; 
 		}
 	}
+	
 	return 0;
 }
 
@@ -79,7 +83,7 @@ void snake_move(struct snake *s, enum direction dir) {
 }
 
 void snake_reverse(struct snake *s) { 
-	struct body* newTail = s->body;
+	/*struct body* newTail = s->body;*/
 	struct body* newHead = getTail(s);
 	s->body->prev = NULL;
 	
@@ -91,7 +95,7 @@ void snake_reverse(struct snake *s) {
 		node = node->prev;
 	}
 	s->body = newHead;
-	newHead->prev = NULL;
+	newHead->prev = NULL;	
 }
 
 void snake_increase(struct snake *s, enum direction dir) {
@@ -116,12 +120,14 @@ void snake_decrease(struct snake *s, unsigned int decrease_len) {
 void snake_save(struct snake *s, char *filename) {
     FILE* file = fopen(filename, "w");
 	if (file != NULL) {
-		fprintf("%u ", s->length);
+		printf("File is opened in save\n");
+
+		fprintf(file, "%u ", s->length);
 
 		struct body* node = s->body;
 		unsigned i = 0;
 		for(; i < s->length && node != NULL; ++i) {
-			fprintf("%u %u ", node->pos.i, node->pos.j);
+			fprintf(file, "%u %u ", node->pos.i, node->pos.j);
 			node = node->next;
 		}
 	}
@@ -130,21 +136,26 @@ void snake_save(struct snake *s, char *filename) {
 
 /* Loads the snake from filename */
 struct snake *snake_read(char *filename) {
-	struct snake* s = malloc(sizeof(*s));
 	FILE* file = fopen(filename, "r");
-	if (file != NULL) {
-		fscanf("%u ", s->length);
-
-		struct body* prev = NULL;
+	/* printf(strerror(errno)); */
+    struct snake* s = malloc(sizeof(struct snake));
+    if (file != NULL) {
+        unsigned length;
+		fscanf(file, "%u ", &(length));
 		unsigned i = 0;
-		for(; i < s->length; ++i) {
+		for(; i < length; ++i) {
 			struct position pos;
-			fscanf("%u %u ", &(pos.i), &(pos.j));
-			snakeIncreaseByPosition(s, pos);
+			if(fscanf(file, "%u %u ", &(pos.i), &(pos.j)) != EOF) {
+                if (i == 0)
+                    firstPositionForSnake(s, pos);
+                else
+                    snakeAppend(s, pos);
+            }
 		}
-	}
-	fclose(file);
-    return NULL;    
+
+        fclose(file);
+    }
+    return s;
 }
 
 static int equalPositions(const struct position pos1, const struct position pos2) {
@@ -183,4 +194,18 @@ static struct body* getTail(struct snake* s) {
 	while (node->next != NULL)
 		node = node->next;
 	return node;
+}
+
+static void firstPositionForSnake(struct snake* s, struct position firstPos) {
+	struct body* newHead = malloc(sizeof(struct body));	
+	*newHead = newBody(firstPos, NULL, s->body);
+    s->body = newHead;
+    ++(s->length);
+}
+
+static void snakeAppend(struct snake* s, struct position pos) {
+    struct body* oldTail = getTail(s);
+    oldTail->next = malloc(sizeof(struct body));
+    *(oldTail->next) = newBody(pos, oldTail, NULL);
+    ++(s->length);
 }
