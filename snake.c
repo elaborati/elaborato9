@@ -1,7 +1,7 @@
 #include "snake.h" 
 #include <stdio.h>
 #include <stdlib.h>
-#include <errno.h>
+/*#include <errno.h>*/
 #include <string.h>
 #include <time.h>
 
@@ -136,7 +136,7 @@ void snake_save(struct snake *s, char *filename) {
 /* Loads the snake from filename */
 struct snake *snake_read(char *filename) {
 	FILE* file = fopen(filename, "r");
-	//printf(strerror(errno));
+	/*printf(strerror(errno));*/
     struct snake* s = malloc(sizeof(struct snake));
     if (file != NULL) {
         unsigned length, rows, cols;
