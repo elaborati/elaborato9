@@ -1,7 +1,7 @@
 #include "snake.h" 
 #include <stdio.h>
 #include <stdlib.h>
-/*#include <errno.h>*/
+#include <errno.h>
 #include <string.h>
 #include <time.h>
 
@@ -17,12 +17,11 @@ struct snake *snake_create(unsigned int rows, unsigned int cols) {
 	struct snake* snake = malloc(sizeof(struct snake));
 	snake->rows = rows;
 	snake->cols = cols;
-	snake->length = 1;
+	snake->length = 0;
 
-	snake->body = malloc(sizeof(struct body));
     srand(time(NULL));
 	struct position randPos; randPos.i = rand() % rows; randPos.j =  rand() % cols;
-	*(snake->body) = newBody(randPos, NULL, NULL);
+    firstPositionForSnake(snake, randPos);
 	return snake;
 } 
 
@@ -122,7 +121,7 @@ void snake_save(struct snake *s, char *filename) {
 	if (file != NULL) {
 		printf("File is opened in save\n");
 
-		fprintf(file, "%u ", s->length);
+		fprintf(file, "%u %u %u ", s->length, s->rows, s->cols);
 
 		struct body* node = s->body;
 		unsigned i = 0;
@@ -137,11 +136,11 @@ void snake_save(struct snake *s, char *filename) {
 /* Loads the snake from filename */
 struct snake *snake_read(char *filename) {
 	FILE* file = fopen(filename, "r");
-	/* printf(strerror(errno)); */
+	//printf(strerror(errno));
     struct snake* s = malloc(sizeof(struct snake));
     if (file != NULL) {
-        unsigned length;
-		fscanf(file, "%u ", &(length));
+        unsigned length, rows, cols;
+		fscanf(file, "%u %u %u ", &length, &rows, &cols);
 		unsigned i = 0;
 		for(; i < length; ++i) {
 			struct position pos;
@@ -152,7 +151,9 @@ struct snake *snake_read(char *filename) {
                     snakeAppend(s, pos);
             }
 		}
-
+        s->length = length;
+        s->rows = rows;
+        s->cols = cols;
         fclose(file);
     }
     return s;
@@ -179,11 +180,11 @@ static struct body newBody(struct position pos, struct body* prev, struct body* 
 	b.next = next;
 	b.prev = prev;
 	return b;
-}	
+}
 
 static void snakeIncreaseByPosition(struct snake* s, struct position pos) {
-	struct body* newHead = malloc(sizeof(struct body));	
-	*newHead = newBody(pos, getTail(s), s->body);
+	struct body* newHead = malloc(sizeof(struct body));
+	*newHead = newBody(pos, NULL, s->body);
     s->body->prev = newHead;
     s->body = newHead;
 	++(s->length);
@@ -197,8 +198,8 @@ static struct body* getTail(struct snake* s) {
 }
 
 static void firstPositionForSnake(struct snake* s, struct position firstPos) {
-	struct body* newHead = malloc(sizeof(struct body));	
-	*newHead = newBody(firstPos, NULL, s->body);
+	struct body* newHead = malloc(sizeof(struct body));
+	*newHead = newBody(firstPos, NULL, NULL);
     s->body = newHead;
     ++(s->length);
 }
